@@ -216,6 +216,16 @@ vec2f_t Add_vec2f_vec2f(vec2f_t a, vec2f_t b) {
 	return v;
 }
 
+vec2f_t Normalize_vec2f(vec2f_t v) {
+	vec2f_t res = {0};
+
+	float a = pow(v.x * v.x + v.y * v.y, 0.5);
+	res.x = v.x / a;
+	res.y = v.y / a;
+
+	return res;
+}
+
 vec2f_t Mul_vec2f_f(vec2f_t a, float f) {
 	vec2f_t v = {0};
 	v.x = a.x * f;

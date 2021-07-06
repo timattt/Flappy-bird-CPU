@@ -48,20 +48,20 @@ extern char errorMessage[ERROR_MESSAGE_LEN];
 #define STATE_GAME_OVER_MENU 2
 
 // PHYSICS
-#define G 1000.0f
+#define G SCREEN_WIDTH
 
 // BIRD
-#define BIRD_JUMP_SPEED 300.0f
+#define BIRD_JUMP_SPEED (4 * SCREEN_HEIGHT / 9)
 #define BIRD_JUMP_INTERVAL 0.2f
 #define BIRD_WIDTH (SCREEN_WIDTH / 20)
 #define BIRD_HEIGHT (BIRD_WIDTH)
 
 // COLUMNS
-#define COLUMNS_START_GENERATION_TIME_INTERVAL 3.0f
-#define COLUMNS_START_SPEED 100.0f
-#define COLUMNS_ACCELERATION 10.0f
-#define MAX_COLUMNS 20
-#define TOTAL_COLUMN_TEXTURE_SPLITS_COUNT 5
+#define COLUMNS_START_GENERATION_INTERVAL (SCREEN_WIDTH / 2)
+#define COLUMNS_START_SPEED (SCREEN_WIDTH / 10)
+#define COLUMNS_ACCELERATION (SCREEN_WIDTH / 100)
+#define MAX_COLUMNS (SCREEN_WIDTH / 50)
+#define TOTAL_COLUMN_TEXTURE_SPLITS_COUNT (SCREEN_WIDTH / 200)
 
 // MENU
 #define MENU_MINX (SCREEN_WIDTH * 3 / 10)
@@ -70,12 +70,21 @@ extern char errorMessage[ERROR_MESSAGE_LEN];
 #define MENU_MAXY (MENU_MINY + (MENU_MAXX-MENU_MINX))
 
 #define MENU_BUTTON_MINY (MENU_MINY + 2 * (MENU_MAXY - MENU_MINY) / 3)
+
+// Particles
+#define MAX_PARTICLES 15
+#define PARTICLES_GENERATION_INTERVAL 0.01f
+#define PARTICLE_SIZE (SCREEN_WIDTH / 50)
 //=============================
 
 
 // Typedefs
 //=============================
 typedef struct texture tex_t;
+typedef struct column column_t;
+typedef struct bird bird_t;
+typedef struct menu menu_t;
+typedef struct particle particle_t;
 //=============================
 
 
@@ -103,6 +112,10 @@ struct menu {
 	tex_t button_not_pressed;
 	tex_t button_pressed;
 };
+struct particle {
+	vec2f_t pos;
+	int seed;
+};
 //=============================
 
 
@@ -113,12 +126,13 @@ int cleanupTexture(tex_t * t);
 int loadTexture(const char *path, tex_t * result);
 int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_t pos, vec2f_t dim);
 
-// Rectangles
+// Simple shapes drawing
 int drawRect_char4(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, vec2f_t dim, char r, char g, char b, char a);
 int drawRect_int(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, vec2f_t dim, uint32_t col);
+int setPixel(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, uint32_t val);
 
 // Utils
-int cycle_bit_move_left(int x, int k);
+int cycleMoveLeft(int x, int k);
 int PrintErrorMessage();
-bool aabb_intersects(vec2f_t a1, vec2f_t b1, vec2f_t a2, vec2f_t b2);
+bool aabbIntersectionTest(vec2f_t a1, vec2f_t b1, vec2f_t a2, vec2f_t b2);
 //=============================

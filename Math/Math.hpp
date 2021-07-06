@@ -85,4 +85,5 @@ vec3f_t Mul_vec3f_vec3f(vec3f_t a, vec3f_t b);
 // Vec2f
 vec2f_t Add_vec2f_vec2f(vec2f_t a, vec2f_t b);
 vec2f_t Mul_vec2f_f(vec2f_t a, float f);
+vec2f_t Normalize_vec2f(vec2f_t v);
 //=================================================

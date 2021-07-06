@@ -1,7 +1,77 @@
 #include "Core.hpp"
 
+// Errors
+//====================================
 int errcode = 0;
 char errorMessage[ERROR_MESSAGE_LEN] = { 0 };
+//====================================
+
+
+// Utils
+//====================================
+int PrintErrorMessage() {
+	if (strlen(errorMessage) > 0) {
+		printf("%s", errorMessage);
+	} else {
+		printf("No error is found!\n");
+	}
+	fflush(stdout);
+	return 0;
+}
+
+int minInt(int a, int b) {
+	if (a < b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
+int maxInt(int a, int b) {
+	if (a < b) {
+		return b;
+	} else {
+		return a;
+	}
+}
+
+void print_bin(uint32_t v) {
+	for (int i = 0; i < 32; i++) {
+		if (v & 1)
+			printf("1");
+		else
+			printf("0");
+
+		v >>= 1;
+	}
+	printf("\n");
+}
+
+int cycleMoveLeft(int x, int k) {
+	return (x >> k) | (x << (sizeof(x) * 8 - k));
+}
+
+bool aabbIntersectionTest(vec2f_t a1, vec2f_t b1, vec2f_t a2, vec2f_t b2) {
+	 return (a1.x <= a2.x + b2.x && a1.x + b1.x >= a2.x) &&
+	        (a1.y <= a2.y + b2.y && a1.y + b1.y >= a2.y);
+}
+//====================================
+
+
+// Drawing simple shapes
+//====================================
+int setPixel(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, uint32_t val) {
+	NOT_NULL(dest);
+
+	int x = (int)pos.x;
+	int y = (int)pos.y;
+
+	ENSURE(0 <= x && x < SCREEN_WIDTH && 0 <= y && y < SCREEN_HEIGHT);
+
+	dest[y][x] = val;
+
+	return 0;
+}
 
 int drawRect_char4(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, vec2f_t dim, char r, char g, char b, char a) {
 	NOT_NULL(dest);
@@ -40,44 +110,11 @@ int drawRect_int(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, vec2f_
 
 	return 0;
 }
+//====================================
 
-void print_bin(uint32_t v) {
-	for (int i = 0; i < 32; i++) {
-		if (v & 1)
-			printf("1");
-		else
-			printf("0");
 
-		v >>= 1;
-	}
-	printf("\n");
-}
-
-int cycle_bit_move_left(int x, int k) {
-	return (x >> k) | (x << (sizeof(x) * 8 - k));
-}
-
-bool aabb_intersects(vec2f_t a1, vec2f_t b1, vec2f_t a2, vec2f_t b2) {
-	 return (a1.x <= a2.x + b2.x && a1.x + b1.x >= a2.x) &&
-	        (a1.y <= a2.y + b2.y && a1.y + b1.y >= a2.y);
-}
-
-int min(int a, int b) {
-	if (a < b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-int max(int a, int b) {
-	if (a < b) {
-		return b;
-	} else {
-		return a;
-	}
-}
-
+// Drawing textures
+//====================================
 int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_t pos, vec2f_t dim) {
 	NOT_NULL(dest);
 	NOT_NULL(tex);
@@ -93,8 +130,8 @@ int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_
 				int tx = (float)x1 / (float)w * (float) tex->width;
 				int ty = (1.0f - (float)y1 / (float)h) * (float) tex->height;
 
-				tx = max(0, min(tx, tex->width - 1));
-				ty = max(0, min(ty, tex->height - 1));
+				tx = maxInt(0, minInt(tx, tex->width - 1));
+				ty = maxInt(0, minInt(ty, tex->height - 1));
 
 				uint32_t val = ((uint32_t*) tex->buf) [ty * tex->width + tx];
 
@@ -106,16 +143,6 @@ int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_
 		}
 	}
 
-	return 0;
-}
-
-int PrintErrorMessage() {
-	if (strlen(errorMessage) > 0) {
-		printf("%s", errorMessage);
-	} else {
-		printf("No error is found!\n");
-	}
-	fflush(stdout);
 	return 0;
 }
 
@@ -173,3 +200,4 @@ int cleanupTexture(tex_t * t) {
 
 	return 0;
 }
+//====================================

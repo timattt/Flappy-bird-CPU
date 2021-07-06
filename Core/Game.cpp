@@ -9,10 +9,10 @@ int currentGameState = STATE_START_MENU;
 struct bird actor = { 0 };
 
 // Columns
-float column_gen_interval = 0;
-float current_columns_speed = COLUMNS_START_SPEED;
-column columns[MAX_COLUMNS];
-int total_columns = 0;
+float lastColumnGenerationTimeDelay = 0;
+float currentColumnsSpeed = COLUMNS_START_SPEED;
+column_t columns[MAX_COLUMNS] = { 0 };
+int columnIndex = 0;
 
 // Menus
 menu startMenu = { 0 };
@@ -20,6 +20,11 @@ menu gameOverMenu = { 0 };
 
 // Background
 tex_t backGroundTexture = {0};
+
+// Particles
+float lastParticleGenerationTimeDelay = 0;
+particle_t particles[MAX_PARTICLES] = { 0 };
+int particleIndex = 0;
 
 // FPS
 #ifdef DEBUG
@@ -33,31 +38,13 @@ int currentFpsCount = 0;
 
 // Columns control
 //================================================
-void deleteAllColumns() {
-	memset(columns, 0, MAX_COLUMNS * sizeof(column));
-}
-
-void refreshColumns() {
-	column tmp[MAX_COLUMNS] = { 0 };
-	int ind = 0;
-	for (int i = 0; i < MAX_COLUMNS; i++) {
-		if (columns[i].splits_y_count != 0) {
-			tmp[ind] = columns[i];
-			ind++;
-		}
-	}
-
-	memcpy(columns, tmp, MAX_COLUMNS * sizeof(column));
-	total_columns = ind;
-}
-
-void addColumn(column col) {
-	columns[total_columns] = col;
-	total_columns++;
+void addColumn(column_t col) {
+	columns[columnIndex % MAX_COLUMNS] = col;
+	columnIndex++;
 }
 
 void createColumn() {
-	column col = {0};
+	column_t col = {0};
 
 	// Bottom
 	col.seed = rand();
@@ -102,8 +89,10 @@ void restart() {
 	actor.killed = 0;
 	actor.jumping_time = 0;
 	actor.pos = {SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2};
-	deleteAllColumns();
-	current_columns_speed = COLUMNS_START_SPEED;
+	particleIndex = 0;
+	memset(columns, 0, MAX_COLUMNS * sizeof(column_t));
+	memset(particles, 0, MAX_PARTICLES * sizeof(particle_t));
+	currentColumnsSpeed = COLUMNS_START_SPEED;
 }
 
 // initialize game data in this function
@@ -121,6 +110,22 @@ void initialize() {
 
 // Draw functions
 //================================================
+void drawParticles() {
+	if (actor.speed.y == 0) {
+		return;
+	}
+
+	for (int i = 0; i < MAX_PARTICLES; i++) {
+		if (particles[i].pos.x == 0) {
+			continue;
+		}
+
+		drawRect_int(buffer,
+				{particles[i].pos.x - PARTICLE_SIZE / 2,particles[i].pos.y - PARTICLE_SIZE / 2},
+				{PARTICLE_SIZE, PARTICLE_SIZE}, particles[i].seed);
+	}
+}
+
 void drawBackGround() {
 	drawTexture(&backGroundTexture, buffer, {0, 0}, {SCREEN_WIDTH, SCREEN_HEIGHT});
 }
@@ -156,8 +161,8 @@ void drawMenu() {
 }
 
 void drawColumns() {
-	for (int i = 0; i < total_columns; i++) {
-		column col = columns[i];
+	for (int i = 0; i < MAX_COLUMNS; i++) {
+		column_t col = columns[i];
 		if (col.splits_y_count == 0) {
 			continue;
 		}
@@ -168,7 +173,7 @@ void drawColumns() {
 
 		for (int x = 0; x < TOTAL_COLUMN_TEXTURE_SPLITS_COUNT; x++) {
 			for (int y = 0; y < col.splits_y_count; y++) {
-				drawRect_int(buffer, {col.pos.x + x * dx, col.pos.y + y * dy}, {dx + EPSILON, dy + EPSILON}, cycle_bit_move_left(col.seed, x + y) | 0x0F0F0F0F);
+				drawRect_int(buffer, {col.pos.x + x * dx, col.pos.y + y * dy}, {dx + EPSILON, dy + EPSILON}, cycleMoveLeft(col.seed, x + y) | 0x0F0F0F0F);
 			}
 		}
 	}
@@ -178,6 +183,21 @@ void drawColumns() {
 
 // Update functions
 //================================================
+void updateParticles(float dt) {
+	if (lastParticleGenerationTimeDelay > PARTICLES_GENERATION_INTERVAL) {
+		lastParticleGenerationTimeDelay = 0;
+		particles[particleIndex % MAX_PARTICLES] = {Add_vec2f_vec2f(actor.pos,{BIRD_WIDTH / 2, BIRD_HEIGHT / 2}), (int)(rand() | 0xBFBFBFBF)};
+		particleIndex++;
+	} else {
+		lastParticleGenerationTimeDelay += dt;
+	}
+	for (int i = 0; i < MAX_PARTICLES; i++) {
+		particles[i].pos.x -= currentColumnsSpeed * dt;
+		if (particles[i].pos.x < 0) {
+			particles[i] = {0};
+		}
+	}
+}
 void updateMenu() {
 	if (isCursorInsideButton() && is_mouse_button_pressed(0) && currentGameState != STATE_GAME) {
 		currentGameState = STATE_GAME;
@@ -190,19 +210,19 @@ void updateColumns(float dt) {
 		return;
 	}
 
-	float gen_interval = COLUMNS_START_GENERATION_TIME_INTERVAL * COLUMNS_START_SPEED / current_columns_speed;
+	float gen_interval = COLUMNS_START_GENERATION_INTERVAL / currentColumnsSpeed;
 
 	// Creating
-	if (column_gen_interval > gen_interval) {
-		column_gen_interval = 0;
+	if (lastColumnGenerationTimeDelay > gen_interval) {
+		lastColumnGenerationTimeDelay = 0;
 		createColumn();
 	} else {
-		column_gen_interval += dt;
+		lastColumnGenerationTimeDelay += dt;
 	}
 
 	// Updating
-	for (int i = 0; i < total_columns; i++) {
-		column col = columns[i];
+	for (int i = 0; i < MAX_COLUMNS; i++) {
+		column_t col = columns[i];
 		if (col.splits_y_count == 0) {
 			continue;
 		}
@@ -210,22 +230,18 @@ void updateColumns(float dt) {
 			columns[i] = {0};
 			continue;
 		} else {
-			col.pos.x -= current_columns_speed * dt;
+			col.pos.x -= currentColumnsSpeed * dt;
 			columns[i] = col;
 		}
 
-		if (aabb_intersects(col.pos, col.dim, actor.pos, {BIRD_WIDTH, BIRD_HEIGHT})) {
+		if (aabbIntersectionTest(col.pos, col.dim, actor.pos, {BIRD_WIDTH, BIRD_HEIGHT})) {
 			actor.killed = 1;
-			current_columns_speed = 0;
+			currentColumnsSpeed = 0;
 			break;
 		}
 	}
 
-	if (total_columns + 5 > MAX_COLUMNS) {
-		refreshColumns();
-	}
-
-	current_columns_speed += COLUMNS_ACCELERATION * dt;
+	currentColumnsSpeed += COLUMNS_ACCELERATION * dt;
 }
 
 void updateActor(float dt) {
@@ -276,6 +292,7 @@ void act(float dt) {
 	updateMenu();
 	updateActor(dt);
 	updateColumns(dt);
+	updateParticles(dt);
 
 #ifdef DEBUG
 	// FPS
@@ -283,7 +300,7 @@ void act(float dt) {
 	timeFromLastFpsPrint += dt;
 	if (timeFromLastFpsPrint >= 1.0f) {
 		timeFromLastFpsPrint = 0;
-		printf("FPS: %d, Columns: %d\n", currentFpsCount, total_columns);
+		printf("FPS: %d\n", currentFpsCount);
 		fflush(stdout);
 		currentFpsCount = 0;
 	}
@@ -298,6 +315,7 @@ void draw() {
 
 	drawBackGround();
 	drawColumns();
+	drawParticles();
 	drawActor();
 	drawMenu();
 }

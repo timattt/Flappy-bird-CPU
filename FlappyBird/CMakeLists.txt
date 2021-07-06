@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O3")
 
-add_executable(FB WIN32 core/Game.cpp core/Utils.cpp engine/Engine.cpp math/Math.cpp)
+add_executable(FB WIN32 core/Game.cpp core/Utils.cpp engine/Engine.cpp math/Math.cpp core/Font.cpp)
 
 target_link_libraries(FB gdi32)
 

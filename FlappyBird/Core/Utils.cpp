@@ -128,7 +128,7 @@ int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_
 		for (int y1 = 0; y1 < h; y1++) {
 			if (0 <= (x + x1) && (x + x1) < SCREEN_WIDTH && 0 <= (y + y1) && (y + y1) < SCREEN_HEIGHT && w > 0 && h > 0) {
 				int tx = (float)x1 / (float)w * (float) tex->width;
-				int ty = (1.0f - (float)y1 / (float)h) * (float) tex->height;
+				int ty = ((float)(h - y1 - 1) / (float)h) * (float) tex->height;
 
 				tx = maxInt(0, minInt(tx, tex->width - 1));
 				ty = maxInt(0, minInt(ty, tex->height - 1));
@@ -146,13 +146,12 @@ int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_
 	return 0;
 }
 
-int loadTexture(const char *path, tex_t * result) {
+int loadTexture(const wchar_t *path, tex_t * result) {
 	NOT_NULL(path);
 	NOT_NULL(result);
 
 	HBITMAP bm = (HBITMAP) LoadImageW(NULL, (LPCWSTR)path,
 			IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-
 	ENSURE_M(bm != NULL, "bmp load error");
 
 	BITMAP bitmap = {0};

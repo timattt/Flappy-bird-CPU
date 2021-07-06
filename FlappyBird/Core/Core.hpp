@@ -63,7 +63,7 @@ extern char errorMessage[ERROR_MESSAGE_LEN];
 #define MAX_COLUMNS (SCREEN_WIDTH / 50)
 #define TOTAL_COLUMN_TEXTURE_SPLITS_COUNT (SCREEN_WIDTH / 200)
 
-// MENU
+// MENUS
 #define MENU_MINX (SCREEN_WIDTH * 3 / 10)
 #define MENU_MAXX (SCREEN_WIDTH * 7 / 10)
 #define MENU_MINY (SCREEN_HEIGHT / 4)
@@ -71,20 +71,37 @@ extern char errorMessage[ERROR_MESSAGE_LEN];
 
 #define MENU_BUTTON_MINY (MENU_MINY + 2 * (MENU_MAXY - MENU_MINY) / 3)
 
+// Score panel
+#define SCORE_MINX (SCREEN_WIDTH * 4 / 10)
+#define SCORE_MAXX (SCREEN_WIDTH * 6 / 10)
+#define SCORE_MINY (SCREEN_HEIGHT / 100)
+#define SCORE_MAXY (SCREEN_HEIGHT / 20)
+
+#define SCORE_NUMBER_HEIGHT (SCREEN_HEIGHT / 30.0f)
+#define SCORE_NUMBER_MINX (SCORE_MINX + (SCORE_MAXX-SCORE_MINX) / 2.0f + SCREEN_WIDTH / 100.0f)
+#define SCORE_NUMBER_MINY (SCORE_MINY + (SCORE_MAXY-SCORE_MINY) / 2.0f - SCORE_NUMBER_HEIGHT / 2.0f)
+#define SCORE_NUMBER_STEP (SCREEN_WIDTH / 100.0f)
+
 // Particles
 #define MAX_PARTICLES 15
 #define PARTICLES_GENERATION_INTERVAL 0.01f
 #define PARTICLE_SIZE (SCREEN_WIDTH / 50)
+
+// Fonts
+#define FONT_IMAGES_COUNT 10
+#define FONR_IMAGE_FILE_LENGTH 100
 //=============================
 
 
 // Typedefs
 //=============================
+typedef struct scorePanel scorePanel_t;
 typedef struct texture tex_t;
 typedef struct column column_t;
 typedef struct bird bird_t;
 typedef struct menu menu_t;
 typedef struct particle particle_t;
+typedef struct font font_t;
 //=============================
 
 
@@ -116,6 +133,13 @@ struct particle {
 	vec2f_t pos;
 	int seed;
 };
+struct font {
+	tex_t numbers[FONT_IMAGES_COUNT];
+};
+struct scorePanel {
+	tex_t panelTexture;
+	int currentScore;
+};
 //=============================
 
 
@@ -123,7 +147,7 @@ struct particle {
 //=============================
 // Textures
 int cleanupTexture(tex_t * t);
-int loadTexture(const char *path, tex_t * result);
+int loadTexture(const wchar_t *path, tex_t * result);
 int drawTexture(tex_t * tex, uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH],  vec2f_t pos, vec2f_t dim);
 
 // Simple shapes drawing
@@ -135,4 +159,11 @@ int setPixel(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, uint32_t v
 int cycleMoveLeft(int x, int k);
 int PrintErrorMessage();
 bool aabbIntersectionTest(vec2f_t a1, vec2f_t b1, vec2f_t a2, vec2f_t b2);
+
+// Fonts
+int loadFont(const wchar_t * fileName, font_t * res);
+int drawNumberInBox(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, vec2f_t dim, float step, int num, font_t * font);
+int drawNumberFree(uint32_t dest[SCREEN_HEIGHT][SCREEN_WIDTH], vec2f_t pos, float height, float step, int num, font_t * font);
+int cleanupFont(font_t * res);
+int setFontColor(font_t * font, int col);
 //=============================

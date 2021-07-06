@@ -33,6 +33,12 @@ float timeFromLastFpsPrint = 0;
 int currentFpsCount = 0;
 
 #endif
+
+// Font
+font_t font1 = { 0 };
+
+// Score panel
+scorePanel_t scorePanel = {0};
 //================================================
 
 
@@ -93,17 +99,21 @@ void restart() {
 	memset(columns, 0, MAX_COLUMNS * sizeof(column_t));
 	memset(particles, 0, MAX_PARTICLES * sizeof(particle_t));
 	currentColumnsSpeed = COLUMNS_START_SPEED;
+	scorePanel.currentScore = 0;
 }
 
 // initialize game data in this function
 void initialize() {
 	restart();
-	loadTexture((const char*)(L"Resources/Bird.bmp"), &actor.bird_texture);
-	loadTexture((const char*)(L"Resources/GameOverMenu2.bmp"), &gameOverMenu.button_pressed);
-	loadTexture((const char*)(L"Resources/StartMenu2.bmp"), &startMenu.button_pressed);
-	loadTexture((const char*)(L"Resources/GameOverMenu1.bmp"), &gameOverMenu.button_not_pressed);
-	loadTexture((const char*)(L"Resources/StartMenu1.bmp"), &startMenu.button_not_pressed);
-	loadTexture((const char*)(L"Resources/BackGround.bmp"), &backGroundTexture);
+	loadTexture((L"Resources/Bird.bmp"), &actor.bird_texture);
+	loadTexture((L"Resources/GameOverMenu2.bmp"), &gameOverMenu.button_pressed);
+	loadTexture((L"Resources/StartMenu2.bmp"), &startMenu.button_pressed);
+	loadTexture((L"Resources/GameOverMenu1.bmp"), &gameOverMenu.button_not_pressed);
+	loadTexture((L"Resources/StartMenu1.bmp"), &startMenu.button_not_pressed);
+	loadTexture((L"Resources/BackGround.bmp"), &backGroundTexture);
+	loadFont((L"Resources/Font"), &font1);
+	loadTexture(L"Resources/ScorePanel.bmp", &scorePanel.panelTexture);
+	setFontColor(&font1, 0xAFDFCFBF);
 }
 //================================================
 
@@ -132,6 +142,15 @@ void drawBackGround() {
 
 void drawActor() {
 	drawTexture(&actor.bird_texture, buffer, {actor.pos.x, actor.pos.y}, {BIRD_WIDTH, BIRD_HEIGHT});
+}
+
+void drawScorePanel() {
+	if (currentGameState == STATE_GAME_OVER_MENU ||currentGameState == STATE_GAME) {
+		drawRect_int(buffer, {SCORE_MINX - EPSILON, SCORE_MINY - EPSILON}, {SCORE_MAXX-SCORE_MINX + 2 * EPSILON, SCORE_MAXY-SCORE_MINY + 2 * EPSILON}, 0xFFFFFFFF);
+		drawTexture(&scorePanel.panelTexture, buffer, {SCORE_MINX, SCORE_MINY}, {SCORE_MAXX-SCORE_MINX, SCORE_MAXY-SCORE_MINY});
+		vec2f_t tpos = {SCORE_NUMBER_MINX, SCORE_NUMBER_MINY};
+		drawNumberFree(buffer, tpos, SCORE_NUMBER_HEIGHT, SCORE_NUMBER_STEP, scorePanel.currentScore, &font1);
+	}
 }
 
 void drawMenu() {
@@ -198,7 +217,7 @@ void updateParticles(float dt) {
 		}
 	}
 }
-void updateMenu() {
+void updateMenu(float dt) {
 	if (isCursorInsideButton() && is_mouse_button_pressed(0) && currentGameState != STATE_GAME) {
 		currentGameState = STATE_GAME;
 		restart();
@@ -216,6 +235,7 @@ void updateColumns(float dt) {
 	if (lastColumnGenerationTimeDelay > gen_interval) {
 		lastColumnGenerationTimeDelay = 0;
 		createColumn();
+		scorePanel.currentScore++;
 	} else {
 		lastColumnGenerationTimeDelay += dt;
 	}
@@ -289,7 +309,7 @@ void act(float dt) {
 		schedule_quit_game();
 	}
 
-	updateMenu();
+	updateMenu(dt);
 	updateActor(dt);
 	updateColumns(dt);
 	updateParticles(dt);
@@ -318,6 +338,7 @@ void draw() {
 	drawParticles();
 	drawActor();
 	drawMenu();
+	drawScorePanel();
 }
 
 // free game data in this function
@@ -328,6 +349,8 @@ void finalize() {
 	cleanupTexture(&startMenu.button_not_pressed);
 	cleanupTexture(&gameOverMenu.button_not_pressed);
 	cleanupTexture(&backGroundTexture);
+	cleanupFont(&font1);
+	cleanupTexture(&scorePanel.panelTexture);
 }
 //================================================
 

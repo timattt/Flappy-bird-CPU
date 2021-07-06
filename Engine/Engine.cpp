@@ -8,6 +8,10 @@
 #include <winuser.h>
 #include <windef.h>
 #include <stdlib.h>
+#include <winbase.h>
+#include <wingdi.h>
+#include <winnt.h>
+#include <cstring>
 
 uint32_t buffer[SCREEN_HEIGHT][SCREEN_WIDTH] = { 0 };
 

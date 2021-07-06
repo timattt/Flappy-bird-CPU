@@ -1,6 +1,6 @@
 # Проект GE
 
-<kbd> <img src="https://github.com/timattt/Project-GE/blob/master/Logo.png" /> </kbd>
+<kbd> <img src="https://github.com/timattt/Project-GE/blob/master/About/Logo.png" /> </kbd>
 
 В этом репозитории представленна классическая игра Flappy bird. Реализация которой является частью вступительного испытания.   
 Для графических инструментов обязательно использование предоставленного "фреймворка", он находится в папке Engine.   
@@ -9,7 +9,7 @@
 # О проекте
 Игровой процесс предельно прост: нажимаем пробел - птица прыгает. Спереди появляются колонны - нужно их не задеть, иначе игра заканчивается.
 
-<kbd> <img src="https://github.com/timattt/Project-GE/blob/master/Screenshot.png" /> </kbd>
+<kbd> <img src="https://github.com/timattt/Project-GE/blob/master/About/Screenshot.png" /> </kbd>
 
 # Установка и сборка
 ## MinGW
